@@ -44,7 +44,7 @@ function player:draw()
     for _, tear in pairs(self.tears) do
         tear:draw()
     end
-    print(#self.tears)
+    -- print(#self.tears)
 end
 
 function player:update(dt)
