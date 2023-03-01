@@ -1,25 +1,5 @@
 local love = require "love"
 
---[[
-    PARAMETERS:
-    -> text: string - text to be displayed (required)
-    -> x: number - x position of text (required)
-    -> y: number - y position of text (required)
-    -> font_size: string (optional)
-        default: "p"
-        options: "h1"-"h6", "p"
-    -> fade_in: boolean - Should text fade in (optional)
-        default: false
-    -> fade_out: boolean - Should text fade in (optional)
-        default: false
-    -> wrap_width: number - Whe should text break (optional)
-        default: love.graphics.getWidth() [window width]
-    -> align: string - Align text to location (optional)
-    -> opacity: number (optional)
-        default: 1
-        options: 0.1 - 1
-        NB: Setting fade_in = true will overwrite this to 0.1
- ]]
  function Text(text, x, y, font_size, fade_in, fade_out, wrap_width, align, opacity)
     font_size = font_size or "p"
     fade_in = fade_in or false

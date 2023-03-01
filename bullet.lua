@@ -30,7 +30,6 @@ function bullet:circlate(dt, player, distance)
     local dy = self.y - player.y
     self.angle = math.atan2(dy, dx)
 
-    -- increment angle to make object a rotate around object b
     self.angle = self.angle + 1 * dt
 
     self.x = player.x + distance * math.cos(self.angle)

@@ -10,7 +10,8 @@ function boss:load()
     self.velX = 0
     self.velY = 0
     self.size = 1
-    self.radius = 200
+    self.health = 1500
+    self.radius = self.health / 5
 
     self.minCooldown = 1
     self.maxCooldown = 3
@@ -38,7 +39,8 @@ function boss:load()
     self.switchAngleTimer = 0
     self.switchAngleCooldown = 5
 
-    self.health = 1000
+    self.finalBulletTimer = 0
+    self.startFinalBullet = false
 end
 
 function boss:draw()
@@ -48,6 +50,8 @@ function boss:draw()
     end
     love.graphics.setColor(1, 0, 0, 1)
     love.graphics.circle("line", love.graphics:getWidth()/2, 0, self.radius)
+
+    love.graphics.print(self.health..'', self.x -50, self.y + self.radius / 2 - 15, 0 , 3, 3)
 
     for index, bullet in pairs(self.bullets) do
         -- if CalculateDistance(bullet.x, bullet.y, self.x, self.y) >= self.radius then
@@ -62,6 +66,9 @@ function boss:update(dt)
     self:updateAbility(dt)
 
     self:updateBullets(dt)
+
+    self:updateRadius()
+
 end
 
 -- shooting rotating linear flower pattern
@@ -127,18 +134,36 @@ function boss:shootRotateAroundPlayerPattern(count, radius, speed)
 end
 
 function boss:shootSprialPattern(count, x, y, radius, speed)
-    local startAngle = math.random(180) * math.pi * 2
+    local startAngle = math.random() * math.pi/2
     local startDistance = math.random() * 50 + radius
     local angle = startAngle
     local distance = startDistance
 
     for i = 1, count do
-        local x = player.x + distance * math.cos(angle)
-        local y = player.y + distance * math.sin(angle)
+        local bx = x + distance * math.cos(angle)
+        local by = x + distance * math.sin(angle)
         table.insert(self.bullets, bullet:create(x, y, 10, angle, speed))
         angle = angle + math.random() * 0.2 + 0.1
         distance = distance - math.random() * 2 - 1
     end 
+end
+
+function boss:shootFinalBullet()
+    
+end
+
+function boss:shootAccordingToHealth()
+    if self.health > 1300 then
+        self:shootRandomScatterPattern(10, boss.x, boss.y + boss.radius, 10, 100, 90)
+    elseif self.health > 1000 then
+        self:shootLinearPattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 700 then
+        self:shootCirclePattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 300 then
+        self:shootRingPattern(1, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 0 then
+        self:shootSprialPattern(15, boss.x, boss.y + boss.radius, 10, 100)
+    end
 end
 
 function boss:updateAngle(dt)
@@ -167,10 +192,9 @@ function boss:updateAbility(dt)
         self.inAbility = true
         self.cooldownTimer = 0
 
-        -- 
-        if math.random(1) == 1 then
-            self.abilityType = self.abilityTypeEnum.linear
-        end
+        -- if math.random(1) == 1 then
+        --     self.abilityType = self.abilityTypeEnum.linear
+        -- end
     end
 
     if self.inAbility then
@@ -180,14 +204,9 @@ function boss:updateAbility(dt)
             self.stepTimer = self.stepTimer + dt
             if self.stepTimer > self.stepDuration then
                 -- casting ability according to the health value
-                if self.abilityType == self.abilityTypeEnum.linear then
-                    -- self:shootLinearPattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-                    -- self:shootCirclePattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-                    -- self:shootRandomScatterPattern(10, boss.x, boss.y + boss.radius, 10, 100, 90)
-                    -- self:shootRingPattern(1, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-                    self:shootSprialPattern()
-                    self:shootSprialPattern(100)
-                end
+                --if self.abilityType == self.abilityTypeEnum.linear then
+                self:shootAccordingToHealth()
+                --end
                 self.stepTimer = 0
             end
         end
@@ -215,15 +234,45 @@ function boss:updateBullets(dt)
             table.remove(self.bullets, index)
         end
 
+        if CalculateDistance(bullet.x, bullet.y, player.x, player.y) < player.radius + bullet.radius and not player.invi then
+            player:healthDown()
+            table.remove(self.bullets, index)
+        end
+
         -- better not even to spawn them :(
-        -- if CalculateDistance(bullet.x, bullet.y, self.x, self.y) < boss.radius - bullet.radius then
-        --     table.remove(self.bullets, index)
-        -- end
+        if CalculateDistance(bullet.x, bullet.y, self.x, self.y) < boss.radius - bullet.radius then
+            table.remove(self.bullets, index)
+        end
     end
 end
 
+function boss:updateRadius()
+    -- 300 - 200 health 1500 - 700 300k+b = 1500, 200k+b = 700 100k=800 k = 8  radius * 8 - 900 = health
+    -- 300 - 150 health 1500 - 700 150k = 800 radius * 800/150 - 100 = health
+    if self.health > 900 then
+        -- self.radius = (self.health + 900) / 8
+        self.radius = (self.health + 100) * 150 / 800
+    end
+end
 function boss:decreaseHealth()
-    self.health = self.health - 1
+    if self.health > 0  then
+        self.health = self.health - 1
+    end
+end
+
+function boss:reset()
+    self:removeAllBullets()
+    self:resetHealth()
+end
+
+function boss:removeAllBullets()
+    for k, v in pairs(boss.bullets) do
+        boss.bullets[k] = nil
+    end
+end
+
+function boss:resetHealth()
+    boss.health = 1500
 end
 
 return boss

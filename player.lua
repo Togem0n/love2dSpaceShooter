@@ -4,7 +4,7 @@ local tear = require('tear')
 local player = {}
 
 function player:load()
-    self.size = 30
+    self.size = 20
     self.view_angle = math.rad(90)
     self.x = love.graphics:getWidth() / 2
     self.y = love.graphics:getHeight() / 2
@@ -22,15 +22,33 @@ function player:load()
     self.shootCooldown = 0.1
     self.shootTimer = 0
     self.canShoot = true
+    self.health = 5
+    self.inviDuration = 3
+    self.inviTimer = 0
+    self.invi = false
+    self.getDmg = false
+
+    self.powerLev = 1
 end
 
 function player:draw()
+    -- draw collision collider
     if ShowDebugging then
         love.graphics.setColor(1, 0, 0, 1)
         love.graphics.rectangle("fill", self.x - 2, self.y - 2, 4, 4)
         love.graphics.circle("line", self.x, self.y, self.radius)
     end
-    love.graphics.setColor(1, 1, 1, 1)
+
+    -- draw invincible effect
+    if self.invi then
+        love.graphics.setColor(0, 1, 1)
+        love.graphics.circle("line", self.x, self.y, 15)
+    else
+        love.graphics.setColor(1, 1, 1, 1)
+    end
+
+    -- draw player
+    love.graphics.print(self.health..'', self.x - 5, self.y - 10, 0)
     love.graphics.polygon(
         "line",
         self.x + ((4 / 3) * self.radius) * math.cos(self.angle),
@@ -41,10 +59,10 @@ function player:draw()
         self.y + self.radius * (2 / 3 * math.sin(self.angle) + math.cos(self.angle))
     )
 
+    -- draw tears
     for _, tear in pairs(self.tears) do
         tear:draw()
     end
-    -- print(#self.tears)
 end
 
 function player:update(dt)
@@ -52,6 +70,7 @@ function player:update(dt)
     self:shootInpt()
     self:checkShootCooldown(dt)
     self:updateTears(dt)
+    self:setInvi(dt)
 end
 
 function player:move(dt)
@@ -69,7 +88,13 @@ end
 
 function player:shootInpt()
     if love.keyboard.isDown("space") and self.canShoot then
-        self:shoot()
+        if self.powerLev == 1 then
+            self:shoot()
+        elseif self.powerLev == 2 then
+            self:doubleShoot()
+        else
+            self:tripleShoot()
+        end
         self.canShoot = false
     end
 end
@@ -89,17 +114,55 @@ function player:updateTears(dt)
         tear:update(dt)
 
         if tear:isOutOfScreen() or tear.exploding == tear.exploadingEnum.doneExploding then
-            self:removeTear(index)
+            table.remove(self.tears, index)
         end
     end
 end
 
 function player:shoot()
-    table.insert(self.tears, tear:load(self.x, self.y))
+    table.insert(self.tears, tear:load(self.x, self.y, -math.pi / 2))
 end
 
-function player:removeTear(index)
-    table.remove(self.tears, index)
+function player:doubleShoot()
+    table.insert(self.tears, tear:load(self.x - 5, self.y, -math.pi / 2))
+    table.insert(self.tears, tear:load(self.x + 5, self.y, -math.pi / 2))
+end
+
+function player:tripleShoot()
+    table.insert(self.tears, tear:load(self.x, self.y, -math.pi / 2))
+    table.insert(self.tears, tear:load(self.x - 5, self.y, -4*math.pi / 10))
+    table.insert(self.tears, tear:load(self.x + 5, self.y, -6*math.pi / 10))
+end
+
+function player:removeTears()
+    for k, tear in pairs(self.tears) do
+        self.tears[k] = nil
+    end
+end
+
+function player:healthDown()
+    player.health = player.health - 1
+    player.invi = true
+    player.getDmg = true
+end
+
+function player:setInvi(dt)
+    if self.invi == true then
+        if self.inviTimer < self.inviDuration then
+            self.inviTimer = self.inviTimer + dt
+        else
+            self.inviTimer = 0
+            self.invi = false
+        end
+    end
+end
+
+function player:reset()
+    player.health = 5
+    player.x = love.graphics.getWidth() / 2
+    player.y = love.graphics.getHeight() / 2
+    player.powerLev = 1
+    self:removeTears()
 end
 
 return player

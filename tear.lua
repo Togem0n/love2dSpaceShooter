@@ -2,16 +2,12 @@ local love = require('love')
 
 local tear = {}
 
-function tear:new(x, y)
-    self.x = x
-    self.y = y
-    return self
-end
-
-function tear:load(x, y)
+function tear:load(x, y, angle)
     local obj = {
         x = x,
         y = y,
+        angle = angle,
+        speed = 300,
         velX = 0,
         velY = 300,
         radius = 5,
@@ -23,8 +19,7 @@ function tear:load(x, y)
             inExploading = 1,
             doneExploding = 2
         },
-    }
-     
+    } 
     setmetatable(obj, { __index = tear })
     return obj 
 end
@@ -51,7 +46,10 @@ function tear:update(dt)
 end
 
 function tear:move(dt)
-    self.y = self.y - self.velY * dt
+    local dx = math.cos(self.angle) * self.speed * dt
+    local dy = math.sin(self.angle) * self.speed * dt
+    self.x = self.x + dx
+    self.y = self.y + dy
 end
 
 function tear:isOutOfScreen()
