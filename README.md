@@ -8,6 +8,8 @@ Shoot: Space (Hold)
 
 Pause: ESC
 
+Music assets are from [SketchyLogic]([NES Shooter Music (5 tracks, 3 jingles) | OpenGameArt.org](https://opengameart.org/content/nes-shooter-music-5-tracks-3-jingles)), thanks for amazing game music.
+
 ### Misc
 
 So at the end I made a arcade shooter game even though this wasn't the original plan :p
