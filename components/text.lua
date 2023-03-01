@@ -1,3 +1,4 @@
+-- text script from WeebNetsu's tutorial, check his github repo for more https://github.com/WeebNetsu/YouTube-Projects/tree/main/Lua/Love2D/Asteroids%20Game
 local love = require "love"
 
  function Text(text, x, y, font_size, fade_in, fade_out, wrap_width, align, opacity)

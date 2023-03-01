@@ -1,3 +1,4 @@
+-- create two powerup that occur when boss health value hits certain points (1300 and 700)
 local love = require('love')
 local player = require('player')
 local boss = require('boss')
@@ -47,7 +48,7 @@ end
 
 function powerupManager:reset()
     self.hasCreatedLv2 = false
-    self.hasCreatedLv3 = false 
+    self.hasCreatedLv3 = false
 end
 
 return powerupManager

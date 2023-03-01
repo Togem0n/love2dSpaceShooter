@@ -33,7 +33,6 @@ function menu:run(clicked)
     for name, button in pairs(self.buttons) do
         if button:checkHover(mouse_x, mouse_y, 10) then
             if clicked then
-                print("click")
                 button:click()
             end
         else

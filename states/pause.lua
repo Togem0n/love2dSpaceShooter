@@ -1,3 +1,5 @@
+-- pause state logic
+
 local love = require('love')
 
 local button = require('components.button')

@@ -38,9 +38,6 @@ function boss:load()
     self.switchAngleDir = false
     self.switchAngleTimer = 0
     self.switchAngleCooldown = 5
-
-    self.finalBulletTimer = 0
-    self.startFinalBullet = false
 end
 
 function boss:draw()
@@ -54,24 +51,32 @@ function boss:draw()
     love.graphics.print(self.health..'', self.x -50, self.y + self.radius / 2 - 15, 0 , 3, 3)
 
     for index, bullet in pairs(self.bullets) do
-        -- if CalculateDistance(bullet.x, bullet.y, self.x, self.y) >= self.radius then
         bullet:draw()
-        -- end
     end
 end
 
 function boss:update(dt)
     self:updateAngle(dt)
-
     self:updateAbility(dt)
-
     self:updateBullets(dt)
-
     self:updateRadius()
-
+    self:updateDmgPlayer()
 end
 
--- shooting rotating linear flower pattern
+function boss:shootAccordingToHealth()
+    if self.health > 1300 then
+        self:shootRandomScatterPattern(10, boss.x, boss.y + boss.radius, 10, 100, 90)
+    elseif self.health > 1000 then
+        self:shootLinearPattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 700 then
+        self:shootCirclePattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 300 then
+        self:shootRingPattern(1, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
+    elseif self.health > 0 then
+        self:shootSprialPattern(15, boss.x, boss.y + boss.radius, 10, 100)
+    end
+end
+
 function boss:shootLinearPattern(count, x, y, radius, angle, speed)
     local spacing = 2 * math.pi / (count - 1)
     for i = 1, count do
@@ -148,24 +153,7 @@ function boss:shootSprialPattern(count, x, y, radius, speed)
     end 
 end
 
-function boss:shootFinalBullet()
-    
-end
-
-function boss:shootAccordingToHealth()
-    if self.health > 1300 then
-        self:shootRandomScatterPattern(10, boss.x, boss.y + boss.radius, 10, 100, 90)
-    elseif self.health > 1000 then
-        self:shootLinearPattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-    elseif self.health > 700 then
-        self:shootCirclePattern(10, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-    elseif self.health > 300 then
-        self:shootRingPattern(1, boss.x, boss.y + boss.radius, 10, math.rad(boss.testAngle), 100)
-    elseif self.health > 0 then
-        self:shootSprialPattern(15, boss.x, boss.y + boss.radius, 10, 100)
-    end
-end
-
+-- updating shooting angle according to game time
 function boss:updateAngle(dt)
     if self.testAngle < 180 and self.shouldSwitchAngle then
         if self.switchAngleTimer < self.switchAngleCooldown / 2 then
@@ -185,33 +173,24 @@ function boss:updateAngle(dt)
     end
 end
 
+-- updating shooting duration and cooldown
 function boss:updateAbility(dt)
     if self.cooldownTimer < self.minCooldown and self.inAbility == false then
         self.cooldownTimer = self.cooldownTimer + dt
     else
         self.inAbility = true
         self.cooldownTimer = 0
-
-        -- if math.random(1) == 1 then
-        --     self.abilityType = self.abilityTypeEnum.linear
-        -- end
     end
 
     if self.inAbility then
         self.abilityTimer = self.abilityTimer + dt
-        
         if self.stepTimer < self.stepDuration then
             self.stepTimer = self.stepTimer + dt
             if self.stepTimer > self.stepDuration then
-                -- casting ability according to the health value
-                --if self.abilityType == self.abilityTypeEnum.linear then
                 self:shootAccordingToHealth()
-                --end
                 self.stepTimer = 0
             end
         end
-
-
         if self.abilityTimer > self.abilityDuration then
             self.inAbility = false
             self.abilityTimer = 0
@@ -222,12 +201,6 @@ end
 function boss:updateBullets(dt)
     for index, bullet in pairs(self.bullets) do
         local distance = CalculateDistance(bullet.x, bullet.y, player.x, player.y)
-        -- if distance <= 100 then
-        --     bullet:circlate(dt, player, distance)
-        -- else
-        --     bullet:move(dt)
-        -- end
-
         bullet:move(dt)
 
         if bullet:isOutOfScreen() then
@@ -239,21 +212,26 @@ function boss:updateBullets(dt)
             table.remove(self.bullets, index)
         end
 
-        -- better not even to spawn them :(
         if CalculateDistance(bullet.x, bullet.y, self.x, self.y) < boss.radius - bullet.radius then
             table.remove(self.bullets, index)
         end
     end
 end
 
+-- updating radius according to boss's health
+-- radius range [300, 150] mapping boss's health [1500, 700] 
 function boss:updateRadius()
-    -- 300 - 200 health 1500 - 700 300k+b = 1500, 200k+b = 700 100k=800 k = 8  radius * 8 - 900 = health
-    -- 300 - 150 health 1500 - 700 150k = 800 radius * 800/150 - 100 = health
     if self.health > 900 then
-        -- self.radius = (self.health + 900) / 8
         self.radius = (self.health + 100) * 150 / 800
     end
 end
+
+function boss:updateDmgPlayer()
+    if CalculateDistance(player.x, player.y, self.x, self.y) < player.radius + boss.radius and not player.invi then
+        player:healthDown()
+    end    
+end
+
 function boss:decreaseHealth()
     if self.health > 0  then
         self.health = self.health - 1

@@ -74,14 +74,14 @@ function player:update(dt)
 end
 
 function player:move(dt)
-    if love.keyboard.isDown('d') or love.keyboard.isDown('right') then
+    if (love.keyboard.isDown('d') or love.keyboard.isDown('right')) and self.x + self.radius + self.speed * dt < love.graphics:getWidth() then
         self.x = self.x + self.speed * dt
-    elseif love.keyboard.isDown('a') or love.keyboard.isDown('left') then
+    elseif (love.keyboard.isDown('a') or love.keyboard.isDown('left')) and self.x - self.radius - self.speed * dt > 0 then
         self.x = self.x - self.speed * dt
     end
-    if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
+    if (love.keyboard.isDown('w') or love.keyboard.isDown('up')) and self.y - self.radius - self.speed * dt > 0 then
         self.y = self.y - self.speed * dt
-    elseif love.keyboard.isDown('s')  or love.keyboard.isDown('down')then
+    elseif (love.keyboard.isDown('s')  or love.keyboard.isDown('down')) and self.y + self.radius + self.speed * dt < love.graphics:getHeight() then
         self.y = self.y + self.speed * dt
     end
 end
@@ -141,9 +141,11 @@ function player:removeTears()
 end
 
 function player:healthDown()
-    player.health = player.health - 1
-    player.invi = true
-    player.getDmg = true
+    if not self.invi then
+        player.health = player.health - 1
+        player.invi = true
+        player.getDmg = true
+    end
 end
 
 function player:setInvi(dt)

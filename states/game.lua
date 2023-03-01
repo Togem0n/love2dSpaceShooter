@@ -1,3 +1,5 @@
+-- game state logic, setting game state like menu state, running and pause state
+
 local game = {}
 local boss = require "boss"
 local player = require "player"

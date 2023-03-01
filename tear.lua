@@ -1,3 +1,4 @@
+-- player's bullet ---> tears
 local love = require('love')
 
 local tear = {}

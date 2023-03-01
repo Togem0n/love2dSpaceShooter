@@ -1,3 +1,5 @@
+-- button script from WeebNetsu's tutorial, check his github repo for more https://github.com/WeebNetsu/YouTube-Projects/tree/main/Lua/Love2D/Asteroids%20Game
+
 local love = require "love"
 
 local Text = require "components.text"
